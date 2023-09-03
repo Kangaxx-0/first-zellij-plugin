@@ -38,8 +38,11 @@ Once you've instantiated a Wasm module in Wasmer, you can access its export func
 In zellij, modules are exposing 4 functions that host can interact with:
 
 - `load`: An entry point for initializing the plugin, this exported function gets called when desired plugin is loading from host.
+
 - `update`: Be invoked when there's an event that the plugin needs to handle(Call `subscribe` to the event types). It reads a serialized event from the standard data, decodes it, and then updates the plugin's state accordingly, the return value is to indicate if a render is needed.
+
 - `render`: Draw or refresh the plugin's output. The plugin's render method is invoked with the terminal size specified by rows and cols.
+
 - `plugin_version`: Simply prints the plugin's version number.
 
 Call `register_plugin` macro would export above functions to host automatically.
@@ -47,9 +50,10 @@ Call `register_plugin` macro would export above functions to host automatically.
 ### How does zellij and plugin transfer the data
 WASI has provided virtual file system for its `stdin`, `stdout` and `stderr`, e,g - [wasi_write_object](https://github.com/zellij-org/zellij/blob/main/zellij-server/src/plugins/zellij_exports.rs#L1069) writes the data to STDIN, and [wasi_read_object](https://github.com/zellij-org/zellij/blob/main/zellij-server/src/plugins/zellij_exports.rs#L1076) reads data from its STDOUT;
 for plugin module, there are a few functions can be used:
-    - [object_from_stdin](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L624)
-    - [bytes_from_stdin](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L633)
-    - [object_to_stdout](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L641)
+
+   1. [object_from_stdin](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L624)
+   2. [bytes_from_stdin](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L633)
+   3. [object_to_stdout](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L641)
 
 ### Protobuf support
 Starting from version [0.38](https://github.com/zellij-org/zellij/releases/tag/v0.38.0), Zellij has incorporated Protocol Buffers (Protobuf) for more efficient and robust data serialization and transmission between the host and various modules. This allows complex data structures to be easily transferred across the system.
