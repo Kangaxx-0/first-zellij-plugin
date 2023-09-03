@@ -4,8 +4,17 @@ zellij is using [wasmer](https://wasmer.io/) as running for its plugin developme
 ### **Imports**
 Imports in WASI are functions, memories, globals, or tables that are defined outside the WebAssembly module but can be used within the module. When you instantiate a Wasm module in Wasmer, you need to provide an "import object" that maps the names of these imported items to their actual implementations in the host environment.
 
-In zellij, this is done by 
+In Zellij, this mapping of host environment features to WebAssembly modules is facilitated through the [shim.rs](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs) file, a lot of interfaces calls the below function through FFI.
 
+```
+#[link(wasm_import_module = "zellij")]
+extern "C" {
+    fn host_run_plugin_command();
+}
+```
+Within shim.rs, a number of host functions are exposed and can be called from WebAssembly modules via the Foreign Function Interface (FFI).
+
+Under the hood, below macro is defined in zellij code base.
 ```
 pub fn zellij_exports(
     store: &Store,
@@ -21,20 +30,12 @@ pub fn zellij_exports(
     }
 }
 ```
-In `[shim.rs](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs)`, a lot of interfaces calls the below function through FFI.
-
-```
-#[link(wasm_import_module = "zellij")]
-extern "C" {
-    fn host_run_plugin_command();
-}
-```
 
 ### **Exports**
 Exports are the opposite of imports: they are functions, memories, globals, or tables that are defined within a WebAssembly module and can be accessed from the host environment.
 Once you've instantiated a Wasm module in Wasmer, you can access its export function. 
 
-In zellij, modules are exposing 4 functions that host can call:
+In zellij, modules are exposing 4 functions that host can interact with:
 
 - `load`: An entry point for initializing the plugin, this exported function gets called when desired plugin is loading from host.
 - `update`: Be invoked when there's an event that the plugin needs to handle(Call `subscribe` to the event types). It reads a serialized event from the standard data, decodes it, and then updates the plugin's state accordingly, the return value is to indicate if a render is needed.
@@ -43,19 +44,11 @@ In zellij, modules are exposing 4 functions that host can call:
 
 Call `register_plugin` macro would export above functions to host automatically.
 
-```
-let instance = Instance::new(&module, &import_object)?;
-let my_exported_function: NativeFunc<(), ()> = instance.exports.get_native_function("my_exported_function")?;
-my_exported_function.call()?;
-```
-
-Here, **`"my_exported_function"`** is a function that's defined within the Wasm module, and you can call it from the host environment.
-
 ### How does zellij and plugin transfer the data
 WASI has provided virtual file system for its `stdin`, `stdout` and `stderr`, e,g - [wasi_write_object](https://github.com/zellij-org/zellij/blob/main/zellij-server/src/plugins/zellij_exports.rs#L1069) writes the data to STDIN, and [wasi_read_object](https://github.com/zellij-org/zellij/blob/main/zellij-server/src/plugins/zellij_exports.rs#L1076) reads data from its STDOUT;
 for plugin module, there are a few functions can be used:
     - [object_from_stdin](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L624)
-    - [bytes_from_stdin](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L633gg
+    - [bytes_from_stdin](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L633)
     - [object_to_stdout](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L641)
 
 ### Protobuf support
