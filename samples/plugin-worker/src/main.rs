@@ -51,7 +51,8 @@ impl<'de> ZellijWorker<'de> for FilesWorker {
 
 #[derive(Default)]
 struct ModuleState {
-    files: Vec<String>,
+    file_state: Vec<String>,
+    loaded: bool,
     render_counter: usize,
     last_render_event: String,
 }
@@ -81,7 +82,8 @@ impl ZellijPlugin for ModuleState {
             Event::CustomMessage(name, payload) => {
                 if name == *"done" {
                     let files: Vec<String> = serde_json::from_str(&payload).unwrap();
-                    self.files = files;
+                    self.file_state = files;
+                    self.loaded = true;
                     should_render = true;
                 }
             }
@@ -103,8 +105,15 @@ impl ZellijPlugin for ModuleState {
 
         println!("Render counter: {}", self.render_counter);
         println!("Last render event: {}", self.last_render_event);
-        for (idx, file) in self.files.iter().enumerate() {
-            println!("# {} : file name{}", idx, file);
+        if !self.loaded {
+            println!("\x1b[1;38;5;208mLoading...\x1b[0m");
+            return;
+        }
+        for (idx, file) in self.file_state.iter().enumerate() {
+            println!(
+                "# \x1b[1;31m{}\x1b[0m : file name \x1b[1;32m{}\x1b[0m",
+                idx, file
+            );
         }
     }
 }
