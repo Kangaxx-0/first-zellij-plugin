@@ -46,3 +46,21 @@ Instead of updating `file_state` directly, the following steps are taken:
 
 By separating the concerns of searching files and updating the UI, the plugin ensures that the main UI remains responsive while the long-running job is being processed.
 
+--- 
+
+# How to use
+
+This sample plugin provides a `my.kdl`, the only difference from the zellij default config is a keybinding `Ctrl t t` to render our plugin
+
+
+```
+     bind "t" {
+           LaunchOrFocusPlugin "file:[absolute-path]" {
+               floating true
+               move_to_focused_tab true
+           };
+           SwitchToMode "Normal"
+       }
+```
+
+Change the file path from your local, and run `zellij -c <path-to>\my.kdl`
