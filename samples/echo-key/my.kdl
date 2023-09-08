@@ -68,7 +68,7 @@ keybinds {
         bind "9" { GoToTab 9; SwitchToMode "Normal"; }
         bind "Tab" { ToggleTab; }
         bind "t" {
-            LaunchOrFocusPlugin "file:/home/gaxx/Github/my-first-zellij-plugin/samples/echo-key/target/wasm32-wasi/debug/my-first-zellij-plugin.wasm" {
+            LaunchOrFocusPlugin "file:<path-to>/my-first-zellij-plugin.wasm" {
                 floating true
                 move_to_focused_tab true
             };
