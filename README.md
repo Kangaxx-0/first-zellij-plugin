@@ -8,6 +8,7 @@ Welcome to the definitive guide to the Zellij Plugin System! Have you ever wante
 - Code Samples: Examples to learn from and experiment with.
   1. [echo-key](./samples/echo-key/README.md)
   2. [worker](./samples/plugin-worker/README.md)
+  2. [system_info](./samples/system_info/README.md)
 - Deep Dives: Get into the nitty-gritty of Zellij and its plugin system.
   1. [WASM](./doc/wasm.md) - How zellij uses wasm
   2. [key-flow](./doc/key-press-flow.md) - How zellij receive a key press
