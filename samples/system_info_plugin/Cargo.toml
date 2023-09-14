@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 sysinfo = "0.29.10"
+zellij-tile = "0.38.1"
