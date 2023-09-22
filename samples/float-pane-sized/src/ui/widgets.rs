@@ -29,12 +29,9 @@ pub fn navigation(row: usize, max_cols: usize, colors: Colors) {
     let is_searching = false;
 
     let (arrows, navigate) = if is_searching {
-        (colors.magenta("<ΓåôΓåæ>"), colors.bold("Navigate"))
+        (colors.magenta("<↓↑>"), colors.bold("Navigate"))
     } else {
-        (
-            colors.magenta("<ΓåÉΓåôΓåæΓåÆ>"),
-            colors.bold("Navigate and Expand"),
-        )
+        (colors.magenta("<←↓↑→>"), colors.bold("Navigate and Expand"))
     };
     let enter = colors.magenta("<ENTER>");
     let esc = colors.magenta("<ESC>");
