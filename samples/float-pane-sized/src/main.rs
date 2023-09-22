@@ -1,5 +1,9 @@
 mod ui;
+
+use ui::color::Colors;
 use ui::tabs::TabUi;
+use ui::widgets::{header, listing_panes, navigation};
+
 use zellij_tile::prelude::*;
 
 use std::collections::BTreeMap;
@@ -8,6 +12,8 @@ use std::collections::BTreeMap;
 struct State {
     loaded: bool,
     tabs: Vec<TabUi>,
+    selected_pane: Option<usize>,
+    colors: Colors,
 }
 
 register_plugin!(State);
@@ -15,12 +21,31 @@ register_plugin!(State);
 impl ZellijPlugin for State {
     fn load(&mut self, _configuration: BTreeMap<String, String>) {
         request_permission(&[PermissionType::ReadApplicationState]);
-        subscribe(&[EventType::SessionUpdate]);
+        subscribe(&[
+            EventType::SessionUpdate,
+            EventType::Key,
+            EventType::ModeUpdate,
+        ]);
     }
 
     fn update(&mut self, event: Event) -> bool {
         let mut render = false;
         match event {
+            Event::ModeUpdate(mode_info) => {
+                self.colors = Colors::new(mode_info.style.colors);
+                render = true;
+            }
+
+            Event::Key(key) => match key {
+                Key::Ctrl(c) => match c {
+                    's' => {
+                        self.selected_pane = Some(0);
+                        render = true;
+                    }
+                    _ => {}
+                },
+                _ => {}
+            },
             Event::SessionUpdate(session_info) => {
                 self.get_tabs(session_info);
                 render = true;
@@ -36,17 +61,10 @@ impl ZellijPlugin for State {
         render
     }
 
-    fn render(&mut self, _rows: usize, _cols: usize) {
-        if !self.loaded {
-            println!("float-pane-plugin is loading");
-        } else {
-            for tab in &self.tabs {
-                println!("Tab > {}:", tab.name);
-                for pane in &tab.panes {
-                    println!("     panes > {}", pane.name);
-                }
-            }
-        }
+    fn render(&mut self, rows: usize, cols: usize) {
+        header(rows, cols, self.colors);
+        listing_panes(rows, cols, self.colors, &self.tabs, self.selected_pane);
+        navigation(rows, cols, self.colors);
     }
 }
 
@@ -61,5 +79,20 @@ impl State {
             .iter()
             .map(|tab| TabUi::new(tab, &current_session))
             .collect();
+    }
+
+    fn handle_key(&mut self, e: Event) {
+        match e {
+            Event::Key(key) => match key {
+                Key::Ctrl(c) => match c {
+                    's' => {
+                        self.selected_pane = Some(0);
+                    }
+                    _ => {}
+                },
+                _ => {}
+            },
+            _ => {}
+        }
     }
 }
