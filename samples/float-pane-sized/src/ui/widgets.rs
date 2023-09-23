@@ -1,13 +1,29 @@
 use std::io::{self, Write};
 
 use super::color::Colors;
-use super::tabs::TabUi;
+use super::panes::{DrawPaneLine, PaneUi};
 
-const MAX_PATH_LEN: usize = 20;
-
-pub fn header(rows: usize, cols: usize, color: Colors) {
+pub fn compose_ui(
+    rows: usize,
+    cols: usize,
+    colors: Colors,
+    panes: Vec<PaneUi>,
+    selected_pane: Option<usize>,
+    current_pane_index: Option<usize>,
+) {
     clear_screen();
-    let text = color.cyan("Floating Pane Resize Manager");
+    if let Some(pane_id) = selected_pane {
+        header_resize(rows, cols, colors, pane_id);
+        println!("TODO: ");
+    } else {
+        header_man(rows, cols, colors);
+        listing_panes(rows, cols, colors, panes, selected_pane, current_pane_index);
+        pane_control(rows, cols, colors);
+    }
+}
+
+pub fn header_man(rows: usize, cols: usize, color: Colors) {
+    let text = color.cyan("Floating Pane Manager");
     let text_length = text.len();
 
     let padding_each_side = (cols - text_length) / 2;
@@ -20,19 +36,31 @@ pub fn header(rows: usize, cols: usize, color: Colors) {
         print!(" ");
     }
 
-    let split = "─".repeat(cols);
+    let split = "-".repeat(cols - 1);
     println!("{}", split);
-    println!();
 }
 
-pub fn navigation(row: usize, max_cols: usize, colors: Colors) {
-    let is_searching = false;
+pub fn header_resize(rows: usize, cols: usize, color: Colors, pane_id: usize) {
+    let header = format!("Resize: Pane by index - {}", pane_id);
+    let head = color.cyan(&header);
+    let text_length = head.len();
 
-    let (arrows, navigate) = if is_searching {
-        (colors.magenta("<↓↑>"), colors.bold("Navigate"))
-    } else {
-        (colors.magenta("<←↓↑→>"), colors.bold("Navigate and Expand"))
-    };
+    let padding_each_side = (cols - text_length) / 2;
+    let repeated = " ".repeat(padding_each_side);
+
+    print!("{}", repeated);
+    println!("{}", head);
+
+    if rows % 2 != text_length % 2 {
+        print!(" ");
+    }
+
+    let split = "-".repeat(cols - 1);
+    println!("{}", split);
+}
+
+pub fn pane_control(row: usize, max_cols: usize, colors: Colors) {
+    let arrows = colors.magenta("<↓↑>");
     let enter = colors.magenta("<ENTER>");
     let esc = colors.magenta("<ESC>");
 
@@ -49,58 +77,19 @@ pub fn listing_panes(
     row: usize,
     max_cols: usize,
     colors: Colors,
-    tabs: &[TabUi],
+    panes: Vec<PaneUi>,
     selected_pane: Option<usize>,
+    current_pane_index: Option<usize>,
 ) {
     let mut index = 1;
-    for tab in tabs {
-        for pane in &tab.panes {
-            let focused_text = if pane.is_focused {
-                colors.blue("Yes")
-            } else {
-                colors.orange("No")
-            };
-
-            let selected_indicator = if Some(pane.pane_id as usize) == selected_pane {
-                colors.bold(">")
-            } else {
-                " ".into()
-            };
-
-            let index_color = colors.magenta(&(index.to_string()));
-            let pane_id = colors.magenta(&(pane.pane_id.to_string()));
-            let focus = colors.magenta("Focus");
-            println!(
-                "{}: [{}] {:<16} (ID: {}, {}: {})",
-                index_color,
-                tab.name,
-                middle_truncate(&pane.name),
-                pane_id,
-                focus,
-                focused_text
-            );
-            index += 1;
-        }
-    }
-}
-
-pub fn selected_pane(panes: &[&str], selected_pane: usize, width: usize, height: usize) {
-    clear_screen();
-    for (i, pane) in panes.iter().enumerate() {
-        let marker = if i == selected_pane { ">" } else { " " };
-        println!("| {} {}: {}                  |", marker, i + 1, pane);
+    for pane in panes {
+        let mut new_line = DrawPaneLine::new(pane, selected_pane, current_pane_index, colors);
+        new_line.draw(index);
+        println!("{}", new_line.line);
+        index += 1;
     }
 }
 
 fn clear_screen() {
     print!("\x1b[2J\x1b[H");
-}
-
-fn middle_truncate(s: &str) -> String {
-    if s.len() > MAX_PATH_LEN {
-        let part_len = (MAX_PATH_LEN - 1) / 2;
-        format!("{}~{}", &s[0..part_len], &s[s.len() - part_len..])
-    } else {
-        s.to_string()
-    }
 }

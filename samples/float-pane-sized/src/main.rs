@@ -1,18 +1,19 @@
 mod ui;
 
 use ui::color::Colors;
-use ui::tabs::TabUi;
-use ui::widgets::{header, listing_panes, navigation};
+use ui::panes::PaneUi;
+use ui::widgets::compose_ui;
 
 use zellij_tile::prelude::*;
 
 use std::collections::BTreeMap;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct State {
-    loaded: bool,
-    tabs: Vec<TabUi>,
+    is_loading: bool,
+    panes: BTreeMap<usize, PaneUi>,
     selected_pane: Option<usize>,
+    cursor_pane_index: Option<usize>,
     colors: Colors,
 }
 
@@ -35,63 +36,106 @@ impl ZellijPlugin for State {
                 self.colors = Colors::new(mode_info.style.colors);
                 render = true;
             }
-
-            Event::Key(key) => match key {
-                Key::Ctrl(c) => match c {
-                    's' => {
-                        self.selected_pane = Some(0);
-                        render = true;
-                    }
-                    _ => {}
-                },
-                _ => {}
-            },
-            Event::SessionUpdate(session_info) => {
-                self.get_tabs(session_info);
+            Event::Key(key) => {
+                self.handle_key(key);
                 render = true;
-                self.loaded = false;
+            }
+            Event::SessionUpdate(session_info) => {
+                self.get_panes(session_info);
+                render = true;
+                self.is_loading = false;
             }
             Event::PermissionRequestResult(_result) => {
                 render = true;
             }
             _ => {
-                self.loaded = true;
+                self.is_loading = true;
             }
         }
         render
     }
 
     fn render(&mut self, rows: usize, cols: usize) {
-        header(rows, cols, self.colors);
-        listing_panes(rows, cols, self.colors, &self.tabs, self.selected_pane);
-        navigation(rows, cols, self.colors);
+        let panes: Vec<PaneUi> = self.panes.values().cloned().collect();
+        compose_ui(
+            rows,
+            cols,
+            self.colors,
+            panes,
+            self.selected_pane,
+            self.cursor_pane_index,
+        );
     }
 }
 
 impl State {
-    fn get_tabs(&mut self, session: Vec<SessionInfo>) {
+    fn get_panes(&mut self, session: Vec<SessionInfo>) {
         let current_session = session
-            .into_iter()
-            .find(|session| session.is_current_session)
-            .unwrap();
-        self.tabs = current_session
-            .tabs
             .iter()
-            .map(|tab| TabUi::new(tab, &current_session))
-            .collect();
+            .find(|session| session.is_current_session)
+            .expect("no current session");
+        let mut start_idx = 1;
+
+        for tab in &current_session.tabs {
+            if let Some(related_panes) = current_session.panes.panes.get(&tab.position) {
+                let filtered_panes: Vec<PaneUi> = related_panes
+                    .iter()
+                    .filter_map(|pane| {
+                        if pane.is_floating {
+                            Some(PaneUi::new(pane, tab))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+
+                for pane in filtered_panes {
+                    self.panes.insert(start_idx, pane);
+                    start_idx += 1;
+                }
+            }
+        }
     }
 
-    fn handle_key(&mut self, e: Event) {
+    fn handle_key(&mut self, e: Key) {
         match e {
-            Event::Key(key) => match key {
-                Key::Ctrl(c) => match c {
-                    's' => {
-                        self.selected_pane = Some(0);
-                    }
-                    _ => {}
-                },
-                _ => {}
+            Key::Down => match self.cursor_pane_index {
+                Some(idx) if idx < self.panes.len() => {
+                    self.cursor_pane_index = Some(idx + 1);
+                }
+                Some(idx) if idx == self.panes.len() => {
+                    self.cursor_pane_index = Some(1);
+                }
+                Some(_) => {
+                    unreachable!()
+                }
+                None => self.cursor_pane_index = Some(1),
             },
+            Key::Up => match self.cursor_pane_index {
+                Some(idx) if idx > 1 => {
+                    self.cursor_pane_index = Some(idx - 1);
+                }
+                Some(idx) if idx == 1 => {
+                    self.cursor_pane_index = Some(self.panes.len());
+                }
+                Some(_) => {
+                    unreachable!()
+                }
+                None => self.cursor_pane_index = Some(1),
+            },
+            Key::Ctrl(c) => {
+                if c == 's' {
+                    self.selected_pane = self.cursor_pane_index;
+                }
+            }
+
+            Key::Esc => {
+                if self.selected_pane.is_some() {
+                    self.selected_pane = None;
+                } else {
+                    hide_self();
+                }
+            }
             _ => {}
         }
     }
