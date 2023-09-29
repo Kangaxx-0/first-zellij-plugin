@@ -110,7 +110,15 @@ impl State {
         };
 
         let tab_pos = self.selected_pane.as_ref().unwrap().parent_tab.tab_id;
-        let pane_id = self.selected_pane.as_ref().unwrap().pane_id;
+        let pane_id = if let Some(pane) = self.selected_pane.as_ref() {
+            if pane.is_plugin {
+                Some(PaneId::Plugin(pane.pane_id))
+            } else {
+                Some(PaneId::Terminal(pane.pane_id))
+            }
+        } else {
+            None
+        };
 
         resize_floating_pane_by_percent(size, Some(tab_pos.try_into().unwrap()), pane_id);
     }
