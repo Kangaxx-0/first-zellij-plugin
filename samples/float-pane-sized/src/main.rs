@@ -144,6 +144,11 @@ impl State {
             Key::Ctrl(c) => {
                 if c == 's' && self.selected_pane.is_some() {
                     self.send_resize_event();
+                } else if c == 'r' && self.selected_pane.is_some() {
+                    self.new_width = 0;
+                    self.new_height = 0;
+                    self.input_buffer.clear();
+                    self.awaiting_length_input = false;
                 }
             }
             Key::Esc => {
@@ -170,11 +175,11 @@ impl State {
                 }
                 '\n' if self.selected_pane.is_some() => {
                     if self.awaiting_length_input {
-                        self.new_height = self.input_buffer.parse::<u8>().unwrap();
+                        self.new_height = self.input_buffer.parse::<u8>().unwrap_or(0);
                         self.input_buffer.clear();
                         self.awaiting_length_input = false;
                     } else {
-                        self.new_width = self.input_buffer.parse::<u8>().unwrap();
+                        self.new_width = self.input_buffer.parse::<u8>().unwrap_or(0);
                         self.input_buffer.clear();
                         self.awaiting_length_input = true;
                     }

@@ -106,8 +106,12 @@ pub fn pane_control(row: usize, max_cols: usize, colors: Colors) {
 pub fn resize_control(row: usize, max_cols: usize, colors: Colors) {
     let numbers = colors.magenta("<0-99>");
     let size = colors.bold("Set size");
-    let enter = colors.magenta("<Ctrl+S>");
+    let enter = colors.magenta("<ENTER>");
+    let confirm = colors.bold("Confirm a size");
+    let select = colors.magenta("<Ctrl+S>");
     let submit = colors.bold("Submit");
+    let reset = colors.magenta("<Ctrl+R>");
+    let reset_size = colors.bold("Reset size");
     let esc = colors.magenta("<ESC>");
     let cancel = colors.bold("Cancel");
 
@@ -115,7 +119,7 @@ pub fn resize_control(row: usize, max_cols: usize, colors: Colors) {
     let split_ln_no = row - 1;
     // ANSI escape code to draw a line at the second last line, \x1b[{}H sets the cursor to second last line
     println!("\x1b[{}H{}", split_ln_no, split);
-    print!("\u{1b}[m\u{1b}[{row}H{numbers} : {size}; {enter} : {submit}; {esc} : {cancel}");
+    print!("\u{1b}[m\u{1b}[{row}H{numbers} : {size}; {enter} : {confirm}; {select} : {submit}; {reset} : {reset_size};  {esc} : {cancel}");
 }
 
 pub fn listing_panes(
