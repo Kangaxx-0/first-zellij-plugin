@@ -12,9 +12,13 @@ use std::collections::BTreeMap;
 struct State {
     is_loading: bool,
     panes: BTreeMap<usize, PaneUi>,
-    selected_pane: Option<usize>,
+    selected_pane: Option<PaneUi>,
     cursor_pane_index: Option<usize>,
     colors: Colors,
+    new_width: u8,
+    new_height: u8,
+    input_buffer: String,
+    awaiting_length_input: bool,
 }
 
 register_plugin!(State);
@@ -62,8 +66,10 @@ impl ZellijPlugin for State {
             cols,
             self.colors,
             panes,
-            self.selected_pane,
+            &self.selected_pane,
             self.cursor_pane_index,
+            self.new_width,
+            self.new_height,
         );
     }
 }
@@ -97,6 +103,18 @@ impl State {
         }
     }
 
+    fn send_resize_event(&self) {
+        let size = ResizeByPercent {
+            width: self.new_width as u32,
+            height: self.new_height as u32,
+        };
+
+        let tab_pos = self.selected_pane.as_ref().unwrap().parent_tab.tab_id;
+        let pane_id = self.selected_pane.as_ref().unwrap().pane_id;
+
+        resize_floating_pane_by_percent(size, Some(tab_pos.try_into().unwrap()), pane_id);
+    }
+
     fn handle_key(&mut self, e: Key) {
         match e {
             Key::Down => match self.cursor_pane_index {
@@ -124,19 +142,55 @@ impl State {
                 None => self.cursor_pane_index = Some(1),
             },
             Key::Ctrl(c) => {
-                if c == 's' {
-                    self.selected_pane = self.cursor_pane_index;
+                if c == 's' && self.selected_pane.is_some() {
+                    self.send_resize_event();
                 }
             }
-
             Key::Esc => {
+                if self.selected_pane.is_some() {
+                    self.selected_pane = None;
+                    self.new_width = 0;
+                    self.new_height = 0;
+                } else {
+                    hide_self();
+                }
+            }
+            Key::Delete => {
                 if self.selected_pane.is_some() {
                     self.selected_pane = None;
                 } else {
                     hide_self();
                 }
             }
+            Key::Char(c) => match c {
+                '\n' if self.selected_pane.is_none() => {
+                    self.selected_pane = self
+                        .cursor_pane_index
+                        .and_then(|idx| self.panes.get(&idx).cloned());
+                }
+                '\n' if self.selected_pane.is_some() => {
+                    if self.awaiting_length_input {
+                        self.new_height = self.input_buffer.parse::<u8>().unwrap();
+                        self.input_buffer.clear();
+                        self.awaiting_length_input = false;
+                    } else {
+                        self.new_width = self.input_buffer.parse::<u8>().unwrap();
+                        self.input_buffer.clear();
+                        self.awaiting_length_input = true;
+                    }
+                }
+                '0'..='9' => {
+                    if self.selected_pane.is_some() {
+                        self.capture_number_input(c);
+                    }
+                }
+                _ => {}
+            },
             _ => {}
         }
+    }
+
+    fn capture_number_input(&mut self, c: char) {
+        self.input_buffer.push(c);
     }
 }

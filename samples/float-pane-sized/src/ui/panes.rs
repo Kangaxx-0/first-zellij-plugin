@@ -10,6 +10,14 @@ pub struct PaneUi {
     pub pane_id: u32,
     pub is_plugin: bool,
     pub is_focused: bool,
+    pub pane_x: usize,
+    pub pane_content_x: usize,
+    pub pane_y: usize,
+    pub pane_content_y: usize,
+    pub pane_rows: usize,
+    pub pane_content_rows: usize,
+    pub pane_columns: usize,
+    pub pane_content_columns: usize,
     pub parent_tab: TabUi,
 }
 
@@ -20,23 +28,31 @@ impl PaneUi {
             pane_id: pane.id,
             is_plugin: pane.is_plugin,
             is_focused: pane.is_focused,
+            pane_x: pane.pane_x,
+            pane_content_x: pane.pane_content_x,
+            pane_y: pane.pane_y,
+            pane_content_y: pane.pane_content_y,
+            pane_rows: pane.pane_rows,
+            pane_content_rows: pane.pane_content_rows,
+            pane_columns: pane.pane_columns,
+            pane_content_columns: pane.pane_content_columns,
             parent_tab: TabUi::new(tab),
         }
     }
 }
 
-pub struct DrawPaneLine {
+pub struct DrawPaneLine<'p> {
     pub pane: PaneUi,
-    pub selected_resize: Option<usize>,
+    pub selected_resize: &'p Option<PaneUi>,
     pub is_current: Option<usize>,
     pub colors: Colors,
     pub line: String,
 }
 
-impl DrawPaneLine {
+impl<'p> DrawPaneLine<'p> {
     pub fn new(
         pane: PaneUi,
-        selected_resize: Option<usize>,
+        selected_resize: &'p Option<PaneUi>,
         is_current: Option<usize>,
         colors: Colors,
     ) -> Self {
@@ -89,7 +105,7 @@ impl DrawPaneLine {
         }
     }
 
-    // set the background color to differ from the rest
+    // set the background color to green
     fn make_highlight(&mut self) {
         if self.is_current.is_some() {
             match self.colors.palette.bg {
