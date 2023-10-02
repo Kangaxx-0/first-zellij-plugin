@@ -8,7 +8,7 @@ pub fn compose_ui(
     cols: usize,
     colors: Colors,
     panes: Vec<PaneUi>,
-    selected_pane: &Option<PaneUi>,
+    selected_pane: Option<&PaneUi>,
     current_pane_index: Option<usize>,
     new_width: u8,
     new_height: u8,
@@ -127,7 +127,7 @@ pub fn listing_panes(
     max_cols: usize,
     colors: Colors,
     panes: Vec<PaneUi>,
-    selected_pane: &Option<PaneUi>,
+    selected_pane: Option<&PaneUi>,
     current_pane_index: Option<usize>,
 ) {
     let mut index = 1;

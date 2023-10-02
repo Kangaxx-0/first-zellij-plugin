@@ -66,7 +66,7 @@ impl ZellijPlugin for State {
             cols,
             self.colors,
             panes,
-            &self.selected_pane,
+            self.selected_pane.as_ref(),
             self.cursor_pane_index,
             self.new_width,
             self.new_height,

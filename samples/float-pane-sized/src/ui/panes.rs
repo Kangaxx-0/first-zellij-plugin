@@ -43,7 +43,7 @@ impl PaneUi {
 
 pub struct DrawPaneLine<'p> {
     pub pane: PaneUi,
-    pub selected_resize: &'p Option<PaneUi>,
+    pub selected_resize: Option<&'p PaneUi>,
     pub is_current: Option<usize>,
     pub colors: Colors,
     pub line: String,
@@ -52,7 +52,7 @@ pub struct DrawPaneLine<'p> {
 impl<'p> DrawPaneLine<'p> {
     pub fn new(
         pane: PaneUi,
-        selected_resize: &'p Option<PaneUi>,
+        selected_resize: Option<&'p PaneUi>,
         is_current: Option<usize>,
         colors: Colors,
     ) -> Self {
