@@ -31,6 +31,7 @@ impl ZellijPlugin for State {
             EventType::Key,
             EventType::ModeUpdate,
         ]);
+        self.is_loading = true;
     }
 
     fn update(&mut self, event: Event) -> bool {
@@ -45,9 +46,13 @@ impl ZellijPlugin for State {
                 render = true;
             }
             Event::SessionUpdate(session_info) => {
-                self.get_panes(session_info);
+                if self.is_loading {
+                    self.get_panes(session_info);
+                    self.is_loading = false;
+                } else {
+                    self.update_selected_pane(session_info);
+                }
                 render = true;
-                self.is_loading = false;
             }
             Event::PermissionRequestResult(_result) => {
                 render = true;
@@ -98,6 +103,34 @@ impl State {
                 for pane in filtered_panes {
                     self.panes.insert(start_idx, pane);
                     start_idx += 1;
+                }
+            }
+        }
+    }
+
+    fn update_selected_pane(&mut self, session: Vec<SessionInfo>) {
+        let current_session = session
+            .iter()
+            .find(|session| session.is_current_session)
+            .expect("no current session");
+
+        if let Some(selected_pane) = &self.selected_pane {
+            let selected_tab_id = selected_pane.parent_tab.tab_id;
+            let selected_pane_id = selected_pane.pane_id;
+
+            if let Some(pane_info) =
+                current_session
+                    .panes
+                    .panes
+                    .get(&selected_tab_id)
+                    .and_then(|pane_from_tab| {
+                        pane_from_tab
+                            .iter()
+                            .find(|pane_info| pane_info.id == selected_pane_id)
+                    })
+            {
+                if let Some(parent_tab) = current_session.tabs.get(selected_tab_id) {
+                    self.selected_pane = Some(PaneUi::new(pane_info, parent_tab));
                 }
             }
         }
