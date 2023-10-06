@@ -46,12 +46,11 @@ impl ZellijPlugin for State {
                 render = true;
             }
             Event::SessionUpdate(session_info) => {
-                if self.is_loading {
-                    self.get_panes(session_info);
-                    self.is_loading = false;
-                } else {
-                    self.update_selected_pane(session_info);
+                self.get_panes(&session_info);
+                if self.selected_pane.is_some() {
+                    self.update_selected_pane(&session_info);
                 }
+                self.is_loading = false;
                 render = true;
             }
             Event::PermissionRequestResult(_result) => {
@@ -80,7 +79,7 @@ impl ZellijPlugin for State {
 }
 
 impl State {
-    fn get_panes(&mut self, session: Vec<SessionInfo>) {
+    fn get_panes(&mut self, session: &[SessionInfo]) {
         let current_session = session
             .iter()
             .find(|session| session.is_current_session)
@@ -108,7 +107,7 @@ impl State {
         }
     }
 
-    fn update_selected_pane(&mut self, session: Vec<SessionInfo>) {
+    fn update_selected_pane(&mut self, session: &[SessionInfo]) {
         let current_session = session
             .iter()
             .find(|session| session.is_current_session)
@@ -136,7 +135,7 @@ impl State {
         }
     }
 
-    fn send_resize_event(&self) {
+    fn send_resize_event(&mut self) {
         let size = ResizeByPercent {
             width: self.new_width as u32,
             height: self.new_height as u32,
@@ -154,6 +153,9 @@ impl State {
         };
 
         resize_floating_pane_by_percent(size, Some(tab_pos.try_into().unwrap()), pane_id);
+
+        self.new_width = 0;
+        self.new_height = 0;
     }
 
     fn handle_key(&mut self, e: Key) {
