@@ -67,22 +67,25 @@ impl ZellijPlugin for State {
     }
 
     fn render(&mut self, rows: usize, cols: usize) {
-        let panes: Vec<PaneUi> = self.panes.values().cloned().collect();
-        compose_ui(
-            rows,
-            cols,
-            self.colors,
-            panes,
-            self.selected_pane.as_ref(),
-            self.cursor_pane_index,
-            self.new_width,
-            self.new_height,
-        );
+        if !self.is_loading {
+            let panes: Vec<PaneUi> = self.panes.values().cloned().collect();
+            compose_ui(
+                rows,
+                cols,
+                self.colors,
+                panes,
+                self.selected_pane.as_ref(),
+                self.cursor_pane_index,
+                self.new_width,
+                self.new_height,
+            );
+        }
     }
 }
 
 impl State {
     fn get_panes(&mut self, session: &[SessionInfo]) {
+        self.panes.clear();
         let current_session = session
             .iter()
             .find(|session| session.is_current_session)
