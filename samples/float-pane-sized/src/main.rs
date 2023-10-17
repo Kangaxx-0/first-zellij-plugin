@@ -25,7 +25,10 @@ register_plugin!(State);
 
 impl ZellijPlugin for State {
     fn load(&mut self, _configuration: BTreeMap<String, String>) {
-        request_permission(&[PermissionType::ReadApplicationState]);
+        request_permission(&[
+            PermissionType::ReadApplicationState,
+            PermissionType::ChangeApplicationState,
+        ]);
         subscribe(&[
             EventType::SessionUpdate,
             EventType::Key,
@@ -192,6 +195,8 @@ impl State {
                     self.new_height = 0;
                     self.input_buffer.clear();
                     self.awaiting_length_input = false;
+                } else if c == 'e' {
+                    close_focus();
                 }
             }
             Key::Esc => {

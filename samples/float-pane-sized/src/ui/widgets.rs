@@ -95,12 +95,14 @@ pub fn pane_control(row: usize, max_cols: usize, colors: Colors) {
     let select = colors.bold("Select a pane");
     let esc = colors.magenta("<ESC>");
     let hide = colors.bold("Hide this plugin");
+    let exit = colors.magenta("<Ctrl+E>");
+    let close = colors.bold("Close this pane");
 
     let split = "─".repeat(max_cols);
     let split_ln_no = row - 1;
     // ANSI escape code to draw a line at the second last line, \x1b[{}H sets the cursor to second last line
     println!("\x1b[{}H{}", split_ln_no, split);
-    print!("\u{1b}[m\u{1b}[{row}H{arrows} : {navigate}; {enter} : {select}; {esc} : {hide}");
+    print!("\u{1b}[m\u{1b}[{row}H{arrows} : {navigate}; {enter} : {select}; {esc} : {hide}; {exit} : {close}");
 }
 
 pub fn resize_control(row: usize, max_cols: usize, colors: Colors) {
@@ -114,12 +116,14 @@ pub fn resize_control(row: usize, max_cols: usize, colors: Colors) {
     let reset_size = colors.bold("Reset size");
     let esc = colors.magenta("<ESC>");
     let cancel = colors.bold("Cancel");
+    let exit = colors.magenta("<Ctrl+E>");
+    let close = colors.bold("Close this pane");
 
     let split = "─".repeat(max_cols);
     let split_ln_no = row - 1;
     // ANSI escape code to draw a line at the second last line, \x1b[{}H sets the cursor to second last line
     println!("\x1b[{}H{}", split_ln_no, split);
-    print!("\u{1b}[m\u{1b}[{row}H{numbers} : {size}; {enter} : {confirm}; {select} : {submit}; {reset} : {reset_size};  {esc} : {cancel}");
+    print!("\u{1b}[m\u{1b}[{row}H{numbers} : {size}; {enter} : {confirm}; {select} : {submit}; {reset} : {reset_size};  {esc} : {cancel}; {exit} : {close}");
 }
 
 pub fn listing_panes(
