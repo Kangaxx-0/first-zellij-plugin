@@ -1,0 +1,45 @@
+name: Rust PR Workflow
+
+on:
+  pull_request:
+    paths:
+      - 'sample/**/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Find changed projects
+      id: find-projects
+      run: |
+        # Custom script to find changed projects
+        changed_projects=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'sample/.*Cargo.toml' | sed -E 's@sample/([^/]+)/.*@\1@' | uniq)
+        echo "Changed projects: $changed_projects"
+        echo "::set-output name=projects::$changed_projects"
+
+    - name: Build & Test changed projects
+      run: |
+        for project in ${{ steps.find-projects.outputs.projects }}; do
+          cd sample/$project
+          cargo build --verbose
+          cargo test --verbose
+          cd -
+        done
