@@ -3,7 +3,7 @@ name: Rust PR Workflow
 on:
   pull_request:
     paths:
-      - 'sample/**/*'
+      - 'samples/**/*'
 
 jobs:
   build:
@@ -31,14 +31,14 @@ jobs:
       id: find-projects
       run: |
         # Custom script to find changed projects
-        changed_projects=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'sample/.*Cargo.toml' | sed -E 's@sample/([^/]+)/.*@\1@' | uniq)
+        changed_projects=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'samples/.*Cargo.toml' | sed -E 's@samples/([^/]+)/.*@\1@' | uniq)
         echo "Changed projects: $changed_projects"
         echo "::set-output name=projects::$changed_projects"
 
     - name: Build & Test changed projects
       run: |
         for project in ${{ steps.find-projects.outputs.projects }}; do
-          cd sample/$project
+          cd samples/$project
           cargo build --verbose
           cargo test --verbose
           cd -
