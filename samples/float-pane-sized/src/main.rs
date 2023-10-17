@@ -86,7 +86,7 @@ impl State {
         let current_session = session
             .iter()
             .find(|session| session.is_current_session)
-            .expect("no current session");
+            .expect("no current session-");
         let mut start_idx = 1;
 
         for tab in &current_session.tabs {
