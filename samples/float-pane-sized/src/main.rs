@@ -6,12 +6,13 @@ use ui::widgets::compose_ui;
 
 use zellij_tile::prelude::*;
 
+use nohash_hasher::IntMap;
 use std::collections::BTreeMap;
 
 #[derive(Default, Clone)]
 struct State {
     is_loading: bool,
-    panes: BTreeMap<usize, PaneUi>,
+    panes: IntMap<usize, PaneUi>,
     selected_pane: Option<PaneUi>,
     cursor_pane_index: Option<usize>,
     colors: Colors,
