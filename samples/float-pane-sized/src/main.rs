@@ -49,7 +49,7 @@ impl ZellijPlugin for State {
                 self.handle_key(key);
                 render = true;
             }
-            Event::SessionUpdate(session_info) => {
+            Event::SessionUpdate(session_info, _) => {
                 self.get_panes(&session_info);
                 if self.selected_pane.is_some() {
                     self.update_selected_pane(&session_info);
