@@ -4,6 +4,8 @@ Elevate Your Terminal Experience with Customizable Plugins!
 
 Welcome to the definitive guide to the Zellij Plugin System! Have you ever wanted to extend your zellij functionalities but felt lost? We've got you covered! This repository serves as a hand-to-hand walkthrough that makes creating plugins for Zellij as easy as pie. 🥧
 
+> Currently, designing and implementing the basic components which wrap up ANSI code, see https://github.com/Kangaxx-0/first-zellij-plugin/issues/21
+
 ## 🌟 Features
 - Code Samples: Examples to learn from and experiment with.
   1. [echo-key](./samples/echo-key/README.md)
