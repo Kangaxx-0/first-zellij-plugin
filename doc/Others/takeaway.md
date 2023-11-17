@@ -1,0 +1,2 @@
+
+- When creating the user interface for your plugin, it's important to remember that you are essentially working with raw text that will be processed by an ANSI state machine. Since there is no shell to automatically handle aspects like cursor positioning, you'll need to simulate these functionalities yourself. For example, drawing the cursor will require your plugin to output the appropriate ANSI sequences to position and display it correctly in the user interface.
