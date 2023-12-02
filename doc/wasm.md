@@ -62,6 +62,7 @@ for plugin module, there are a few functions can be used:
   - `/host` -> self.zellij_cwd (Zellij's current working directory)
   - `/data` -> self.plugin_own_data_dir (plugin data directory)
   - `/tmp` -> ZELLIJ_TMP_DIR.as_path() (temporary directory for Zellij)
+> With this mounts, we can access host file system from module/plugin code
 3. Configuring Standard Streams : Configures stdin, stdout, and stderr using Pipe and LoggingPipe. Handles input/output and error logging within the WASM environment.
 
 ### Protobuf support
