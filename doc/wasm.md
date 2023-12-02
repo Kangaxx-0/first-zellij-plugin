@@ -55,6 +55,15 @@ for plugin module, there are a few functions can be used:
    2. [bytes_from_stdin](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L633)
    3. [object_to_stdout](https://github.com/zellij-org/zellij/blob/main/zellij-tile/src/shim.rs#L641)
 
+### wasm runtime configraution in zellij host
+1. Setting Environment Variables
+  - Sets CLICOLOR_FORCE to "1". For more details, please click [HERE](https://bixense.com/clicolors/)
+2. Mapping Directories - Maps host directories to the WASM environment:
+  - `/host` -> self.zellij_cwd (Zellij's current working directory)
+  - `/data` -> self.plugin_own_data_dir (plugin data directory)
+  - `/tmp` -> ZELLIJ_TMP_DIR.as_path() (temporary directory for Zellij)
+3. Configuring Standard Streams : Configures stdin, stdout, and stderr using Pipe and LoggingPipe. Handles input/output and error logging within the WASM environment.
+
 ### Protobuf support
 Starting from version [0.38](https://github.com/zellij-org/zellij/releases/tag/v0.38.0), Zellij has incorporated Protocol Buffers (Protobuf) for more efficient and robust data serialization and transmission between the host and various modules. This allows complex data structures to be easily transferred across the system.
 
